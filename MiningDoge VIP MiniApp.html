@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MiningDoge VIP - Telegram Mini App</title>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        space: {
+                            bg: '#050914',
+                            card: '#0d1527',
+                            border: '#1e293b',
+                            accent: '#6366f1',
+                            purple: '#8b5cf6',
+                            gold: '#fbbf24',
+                            pink: '#ec4899'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            background-color: #050914; 
+            color: #f8fafc; 
+            user-select: none;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 15%, rgba(99, 102, 241, 0.18) 0%, transparent 55%),
+                radial-gradient(circle at 85% 65%, rgba(139, 92, 246, 0.14) 0%, transparent 45%);
+            touch-action: manipulation;
+        }
+
+        .stars-bg {
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50px 70px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 120px 40px, #a5f3fc, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 190px 150px, #ddd6fe, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 260px 90px, #ffffff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 320px 220px;
+        }
+
+        .isometric-platform {
+            animation: floatRig 4s ease-in-out infinite;
+        }
+        @keyframes floatRig {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-7px); }
+        }
+
+        .laser-glow {
+            animation: laserPulse 1.8s infinite ease-in-out;
+        }
+        @keyframes laserPulse {
+            0%, 100% { opacity: 0.3; filter: drop-shadow(0 0 3px #38bdf8); }
+            50% { opacity: 0.95; filter: drop-shadow(0 0 10px #38bdf8); }
+        }
+
+        .btn-claim-glow {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.45);
+        }
+
+        .glass-box {
+            background: rgba(13, 21, 39, 0.82);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="stars-bg min-h-screen flex flex-col justify-between text-gray-100 pb-20">
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-11/12 max-w-sm pointer-events-none"></div>
+
+    <!-- Application Top Header Bar -->
+    <header class="px-4 py-3 flex items-center justify-between z-10 sticky top-0 bg-[#050914]/90 backdrop-blur-md border-b border-slate-800/50">
+        <!-- User Profile info -->
+        <div class="flex items-center gap-2.5">
+            <div class="relative w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 p-0.5 shadow-md">
+                <img id="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=ElBoop" alt="Avatar" class="w-full h-full rounded-full bg-slate-900 object-cover">
+            </div>
+            <div>
+                <h1 id="user-name" class="text-xs font-black text-white flex items-center gap-1">
+                    <span>El Boop</span>
+                    <i class="fa-solid fa-circle-check text-sky-400 text-[10px]"></i>
+                </h1>
+                <div class="inline-flex items-center gap-1 bg-indigo-950/80 border border-indigo-500/40 px-2 py-0.5 rounded-full mt-0.5">
+                    <span id="user-vip-badge" class="text-[9px] font-bold text-indigo-300">Level 0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upper Balance & Language Switcher -->
+        <div class="flex items-center gap-2">
+            <button onclick="toggleLanguage()" class="bg-slate-800/80 border border-slate-700/60 rounded-xl px-2.5 py-1 text-[11px] font-medium text-gray-300 flex items-center gap-1 active:scale-95 transition">
+                <i class="fa-solid fa-globe text-indigo-400"></i>
+                <span id="lang-label">عربي</span>
+            </button>
+
+            <div class="bg-indigo-950/60 border border-indigo-500/40 rounded-xl px-3 py-1 flex items-center gap-1.5 shadow-inner">
+                <i class="fa-solid fa-coins text-amber-400 text-xs animate-pulse"></i>
+                <span id="wallet-balance" class="text-xs font-black text-amber-300 font-mono">2.25</span>
+                <span class="text-[9px] text-indigo-300 font-bold">DOGE</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto w-full px-4 space-y-4 flex-grow pt-2">
+
+        <!-- TAB 1: MINER DASHBOARD -->
+        <section id="tab-miner" class="space-y-4">
+            
+            <div class="relative py-2 flex flex-col items-center justify-center">
+                
+                <div class="w-64 h-52 relative flex items-center justify-center isometric-platform">
+                    <svg viewBox="0 0 200 160" class="w-full h-full drop-shadow-[0_12px_24px_rgba(99,102,241,0.35)]">
+                        <polygon points="100,140 170,105 100,70 30,105" fill="#1e1b4b" stroke="#4f46e5" stroke-width="1.5"/>
+                        <polygon points="100,140 170,105 170,115 100,150" fill="#0f172a" stroke="#312e81" stroke-width="1"/>
+                        <polygon points="100,140 30,105 30,115 100,150" fill="#020617" stroke="#312e81" stroke-width="1"/>
+
+                        <g transform="translate(45, 40)">
+                            <polygon points="20,50 35,42 35,10 20,18" fill="#312e81" stroke="#6366f1" stroke-width="0.8"/>
+                            <polygon points="20,50 5,42 5,10 20,18" fill="#1e1b4b" stroke="#4f46e5" stroke-width="0.8"/>
+                            <polygon points="20,18 35,10 20,2 5,10" fill="#4338ca" stroke="#818cf8" stroke-width="0.8"/>
+                            <circle cx="12" cy="22" r="1.5" fill="#38bdf8" class="laser-glow"/>
+                            <circle cx="12" cy="30" r="1.5" fill="#38bdf8" class="laser-glow"/>
+                        </g>
+
+                        <g transform="translate(115, 40)">
+                            <polygon points="20,50 35,42 35,10 20,18" fill="#312e81" stroke="#6366f1" stroke-width="0.8"/>
+                            <polygon points="20,50 5,42 5,10 20,18" fill="#1e1b4b" stroke="#4f46e5" stroke-width="0.8"/>
+                            <polygon points="20,18 35,10 20,2 5,10" fill="#4338ca" stroke="#818cf8" stroke-width="0.8"/>
+                            <circle cx="27" cy="22" r="1.5" fill="#38bdf8" class="laser-glow"/>
+                            <circle cx="27" cy="30" r="1.5" fill="#38bdf8" class="laser-glow"/>
+                        </g>
+
+                        <ellipse cx="100" cy="100" rx="24" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" class="laser-glow"/>
+                        <ellipse cx="100" cy="100" rx="15" ry="7" fill="#06b6d4" opacity="0.6"/>
+                        
+                        <circle cx="100" cy="92" r="6" fill="#a5f3fc" class="animate-bounce">
+                            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+                        </circle>
+
+                        <line x1="60" y1="65" x2="100" y2="95" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="2,2" class="laser-glow"/>
+                        <line x1="140" y1="65" x2="100" y2="95" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="2,2" class="laser-glow"/>
+                    </svg>
+                </div>
+
+                <div class="text-center mt-1">
+                    <div class="text-3xl font-black text-white font-mono tracking-tight flex items-center justify-center gap-2">
+                        <span id="mined-doge-amount">9.00</span>
+                        <span class="text-lg text-amber-400 font-extrabold">DOGE</span>
+                    </div>
+                </div>
+
+                <div class="w-full max-w-xs mt-2 bg-slate-900/80 rounded-full h-3 border border-indigo-500/30 overflow-hidden relative">
+                    <div id="session-progress-bar" class="bg-gradient-to-r from-indigo-500 to-sky-400 h-full w-3/4 transition-all duration-1000"></div>
+                </div>
+                <div class="text-[10px] font-mono text-indigo-300 mt-1 flex items-center gap-1">
+                    <i class="fa-regular fa-clock text-[10px]"></i>
+                    <span>الوقت المتبقي للجلسة: <strong id="session-timer">03:59:55</strong></span>
+                </div>
+
+                <button onclick="claimMiningProfit()" class="w-full max-w-xs mt-4 btn-claim-glow text-white font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-base shadow-2xl active:scale-95 transition">
+                    <span>المطالبة بالربح</span>
+                    <i class="fa-solid fa-cube text-indigo-200"></i>
+                </button>
+            </div>
+
+            <!-- Task Center Section -->
+            <div class="space-y-3 pt-1">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-indigo-400"></i>
+                        <span>مركز المهام</span>
+                    </h2>
+                    <span class="text-[11px] text-indigo-300 font-medium">مكافآت يومية مجانية</span>
+                </div>
+
+                <div class="glass-box rounded-2xl p-3 flex items-center justify-between border border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-base">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-white">تسجيل الدخول</h3>
+                            <p class="text-[10px] text-slate-400">مكافأة تسجيل الوصول اليومية 10 رموز DOGE</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-amber-400 font-mono">+10.00</span>
+                        <button onclick="claimDailyTask(this)" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3 py-1 rounded-xl transition">
+                            مطالبة
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-box rounded-2xl p-3 flex items-center justify-between border border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-sky-600/20 border border-sky-500/30 flex items-center justify-center text-sky-400 text-base">
+                            <i class="fa-brands fa-telegram"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-white">قم بالتركيز على قناتنا</h3>
+                            <p class="text-[10px] text-slate-400">احصل على 20 رمز عند متابعة قناتنا على Telegram</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-amber-400 font-mono">+20.00</span>
+                        <button onclick="openTelegramChannel(this)" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3 py-1 rounded-xl transition">
+                            تنفيذ
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-box rounded-2xl p-3 flex items-center justify-between border border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 text-base">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-white">يدعوا 5 مستخدمين</h3>
+                            <p class="text-[10px] text-slate-400">احصل على 500 رمز DOGE إضافي</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-amber-400 font-mono">+500.00</span>
+                        <button onclick="switchTab('team')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3 py-1 rounded-xl transition">
+                            يدعوا
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Withdrawal Feed -->
+            <div class="space-y-2 pt-2">
+                <h3 class="text-xs font-extrabold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-amber-400"></i>
+                    <span>سجلات السحب المباشرة</span>
+                </h3>
+                <div class="glass-box p-3 rounded-2xl space-y-2 border border-slate-800/80 max-h-40 overflow-hidden relative">
+                    <div id="withdrawal-ticker-list" class="space-y-2 transition-all duration-500">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: LEADERBOARD -->
+        <section id="tab-leaderboard" class="hidden space-y-4">
+            <div class="text-center py-2">
+                <h2 class="text-base font-black text-white">لوحة المتصدرين 🏆</h2>
+                <p class="text-xs text-slate-400 mt-0.5">أعلى المعدنين أداءً وأكثرهم كسباً هذا الأسبوع</p>
+            </div>
+
+            <div class="space-y-2.5">
+                <div class="glass-box p-3.5 rounded-2xl flex items-center justify-between border border-amber-500/40 bg-amber-500/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-full bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center shadow-lg">1</div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">CryptoKing_99</h4>
+                            <span class="text-[10px] text-amber-300">VIP Level 4</span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black text-amber-400 font-mono">145,250 DOGE</span>
+                </div>
+
+                <div class="glass-box p-3.5 rounded-2xl flex items-center justify-between border border-slate-400/30">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-full bg-slate-400 text-slate-950 font-black text-xs flex items-center justify-center shadow-lg">2</div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Alex_Trader</h4>
+                            <span class="text-[10px] text-slate-300">VIP Level 3</span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black text-amber-400 font-mono">98,810 DOGE</span>
+                </div>
+
+                <div class="glass-box p-3.5 rounded-2xl flex items-center justify-between border border-amber-700/30">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-full bg-amber-700 text-white font-black text-xs flex items-center justify-center shadow-lg">3</div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Satoshi_Doge</h4>
+                            <span class="text-[10px] text-amber-500">VIP Level 2</span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black text-amber-400 font-mono">64,200 DOGE</span>
+                </div>
+
+                <div class="glass-box p-3.5 rounded-2xl flex items-center justify-between border border-indigo-500/50 bg-indigo-950/40 mt-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-full bg-indigo-600 text-white font-black text-xs flex items-center justify-center">#42</div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">El Boop (أنت)</h4>
+                            <span class="text-[10px] text-indigo-300">VIP Level 0</span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black text-amber-400 font-mono" id="leaderboard-user-score">2.25 DOGE</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: UPGRADE -->
+        <section id="tab-upgrade" class="hidden space-y-4">
+            <div class="flex bg-slate-900/90 p-1 rounded-2xl border border-slate-800">
+                <button onclick="switchUpgradeSubTab('rigs')" id="subtab-rigs-btn" class="w-1/2 py-2 text-xs font-bold rounded-xl bg-indigo-600 text-white shadow-md transition">
+                    أدوات التعدين
+                </button>
+                <button onclick="switchUpgradeSubTab('vip')" id="subtab-vip-btn" class="w-1/2 py-2 text-xs font-bold rounded-xl text-slate-400 hover:text-white transition">
+                    ترقية VIP
+                </button>
+            </div>
+
+            <div id="subtab-rigs-content" class="space-y-3">
+                <div class="glass-box rounded-3xl p-4 border border-indigo-500/40 space-y-3 relative overflow-hidden">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-indigo-600 p-0.5 shrink-0 flex items-center justify-center">
+                            <div class="w-full h-full rounded-2xl bg-slate-900 flex items-center justify-center text-amber-400 text-2xl">
+                                <i class="fa-solid fa-microchip"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white">Purchase Level 1</h3>
+                            <p class="text-[11px] text-slate-400">منقّب المبتدئين الذكي</p>
+                            <div class="mt-1 flex items-center gap-3 text-xs">
+                                <span class="text-amber-400 font-bold font-mono">1,000.00 DOGE / يوم</span>
+                                <span class="text-slate-400 text-[10px]">365 يوم</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between border-t border-slate-800/80 pt-3">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block">السعر:</span>
+                            <span class="text-sm font-black text-emerald-400 font-mono">$15.00 USDT</span>
+                        </div>
+                        <button onclick="openDepositModal(15, 'Purchase Level 1')" class="bg-gradient-to-r from-pink-500 to-rose-600 text-white text-xs font-black px-5 py-2.5 rounded-xl shadow-lg transition">
+                            اشتر الآن
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="subtab-vip-content" class="hidden space-y-3">
+                <div class="glass-box rounded-3xl p-4 border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <h4 class="text-xs font-extrabold text-white">Level 0 (الحالي)</h4>
+                            <p class="text-[10px] text-slate-400">2.25 DOGE/H</p>
+                        </div>
+                        <span class="bg-indigo-600/30 text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-indigo-500/40">مجاني</span>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <div>
+                            <h4 class="text-xs font-extrabold text-white">Level 1 (VIP 1)</h4>
+                            <p class="text-[10px] text-slate-400">50.00 DOGE/H</p>
+                        </div>
+                        <button onclick="openDepositModal(15, 'VIP Level 1')" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">
+                            ترقية $15
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: TEAM -->
+        <section id="tab-team" class="hidden space-y-4">
+            <div class="glass-box p-4 rounded-3xl space-y-3 text-center">
+                <h2 class="text-sm font-black text-white">فريق التعدين والأرباح</h2>
+                <p class="text-xs text-slate-400">ادعُ أصدقاءك واحصل على عمولات فورية تصل إلى 5 مستويات</p>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between gap-2 mt-2">
+                    <span id="ref-link-text" class="text-xs font-mono text-indigo-300 truncate dir-ltr">https://t.me/Miningdogevipbot?start=ref_user</span>
+                    <button onclick="copyRefLink()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition">
+                        نسخ
+                    </button>
+                </div>
+
+                <button onclick="shareOnTelegram()" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-extrabold py-3 rounded-2xl text-xs shadow-lg flex items-center justify-center gap-2 mt-2">
+                    <i class="fa-brands fa-telegram text-sm"></i>
+                    <span>شارك عبر تليجرام</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- TAB 5: PROFILE -->
+        <section id="tab-profile" class="hidden space-y-4">
+            <div class="glass-box p-5 rounded-3xl space-y-4 border border-slate-800">
+                <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+                    <div class="w-12 h-12 rounded-full bg-indigo-600/30 p-0.5 border border-indigo-500/50">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=ElBoop" class="w-full h-full rounded-full">
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-black text-white">El Boop</h2>
+                        <span class="text-xs text-emerald-400 font-medium">حساب مفعّل</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between py-1.5 border-b border-slate-800/60">
+                        <span class="text-slate-400">رصيد DOGE المتاح:</span>
+                        <span id="profile-doge-balance" class="font-bold text-amber-400 font-mono">2.25 DOGE</span>
+                    </div>
+                    <div class="flex justify-between py-1.5">
+                        <span class="text-slate-400">شبكات السحب:</span>
+                        <span class="font-bold text-sky-400">USDT-TRC20 / BEP20</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button onclick="openWithdrawModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold py-3 rounded-2xl text-xs shadow-lg flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-wallet"></i>
+                        <span>سحب الأرباح</span>
+                    </button>
+                    <button onclick="openDepositModal(15, 'إيداع رصيد')" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold py-3 rounded-2xl text-xs shadow-lg flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>إيداع / شراء</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 inset-x-0 z-40 bg-[#050914]/95 backdrop-blur-md border-t border-slate-800/80 py-2.5">
+        <div class="max-w-md mx-auto flex justify-around items-center px-2">
+            <button onclick="switchTab('miner')" id="nav-miner" class="flex flex-col items-center gap-1 text-[11px] text-indigo-400 font-bold transition">
+                <i class="fa-solid fa-pickaxe text-base"></i>
+                <span>منجمي</span>
+            </button>
+            <button onclick="switchTab('leaderboard')" id="nav-leaderboard" class="flex flex-col items-center gap-1 text-[11px] text-slate-400 font-medium transition">
+                <i class="fa-solid fa-trophy text-base"></i>
+                <span>المتصدرين</span>
+            </button>
+            <button onclick="switchTab('upgrade')" id="nav-upgrade" class="flex flex-col items-center gap-1 text-[11px] text-slate-400 font-medium transition">
+                <i class="fa-solid fa-rocket text-base"></i>
+                <span>ترقية</span>
+            </button>
+            <button onclick="switchTab('team')" id="nav-team" class="flex flex-col items-center gap-1 text-[11px] text-slate-400 font-medium transition">
+                <i class="fa-solid fa-users text-base"></i>
+                <span>فريق</span>
+            </button>
+            <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-[11px] text-slate-400 font-medium transition">
+                <i class="fa-solid fa-user text-base"></i>
+                <span>أنا</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Modal Deposit -->
+    <div id="modal-deposit" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="glass-box rounded-3xl p-5 max-w-xs w-full border border-indigo-500/50 space-y-3 relative text-right">
+            <button onclick="closeModal('modal-deposit')" class="absolute top-3 left-3 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </button>
+
+            <h3 class="text-sm font-black text-center text-white border-b border-slate-800 pb-2">الدفع والإيداع 💎</h3>
+
+            <div class="space-y-2 text-xs">
+                <div class="bg-indigo-950/60 p-2.5 rounded-xl border border-indigo-500/30 flex justify-between">
+                    <span class="text-slate-300">الباقة:</span>
+                    <strong id="deposit-package-title" class="text-amber-300">Level 1</strong>
+                </div>
+
+                <div class="bg-indigo-950/60 p-2.5 rounded-xl border border-indigo-500/30 flex justify-between">
+                    <span class="text-slate-300">المبلغ:</span>
+                    <strong id="deposit-package-price" class="text-emerald-400 font-mono">$15.00 USDT</strong>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300 block">عنوان المحفظة (USDT TRC20):</label>
+                    <div class="bg-slate-900 border border-slate-700 rounded-xl p-2 flex items-center justify-between gap-1">
+                        <span id="admin-wallet-address" class="text-[10px] font-mono text-sky-300 truncate dir-ltr">TYuK9z8Xq3B4nMvP1wL7eR5tA2sD4fG6hJ</span>
+                        <button onclick="copyAdminAddress()" class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0">نسخ</button>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 block">معرّف المعاملة (TXID):</label>
+                    <input type="text" id="txid-input" placeholder="أدخل كود المعاملة" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+            </div>
+
+            <button onclick="submitDepositPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-2.5 rounded-xl text-xs transition">
+                تأكيد الإرسال
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Withdraw -->
+    <div id="modal-withdraw" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="glass-box rounded-3xl p-5 max-w-xs w-full border border-emerald-500/40 space-y-3 relative text-right">
+            <button onclick="closeModal('modal-withdraw')" class="absolute top-3 left-3 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </button>
+
+            <h3 class="text-sm font-black text-center text-white border-b border-slate-800 pb-2">طلب سحب الأرباح 💸</h3>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-[11px] font-bold text-slate-300 block mb-1">الشبكة:</label>
+                    <select id="withdraw-network" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                        <option value="TRC20">USDT - TRC20</option>
+                        <option value="BEP20">USDT - BEP20</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-[11px] font-bold text-slate-300 block mb-1">عنوان المحفظة:</label>
+                    <input type="text" id="user-mexc-address" placeholder="عنوان محفظتك" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+
+                <div>
+                    <label class="text-[11px] font-bold text-slate-300 block mb-1">الكمية (الحد الأدنى 100):</label>
+                    <input type="number" id="withdraw-amount-input" placeholder="100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+            </div>
+
+            <button onclick="processWithdrawal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-2.5 rounded-xl text-xs transition">
+                إرسال الطلب
+            </button>
+        </div>
+    </div>
+
+    <script>
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+            const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
+            if (tgUser) {
+                document.getElementById('user-name').innerText = tgUser.first_name || 'El Boop';
+            }
+        }
+
+        let appState = {
+            walletBalance: 2.25,
+            minedAmount: 9.00,
+            miningRate: 0.0008,
+            sessionSeconds: 14395
+        };
+
+        setInterval(() => {
+            appState.minedAmount += appState.miningRate;
+            document.getElementById('mined-doge-amount').innerText = appState.minedAmount.toFixed(2);
+        }, 1000);
+
+        function claimMiningProfit() {
+            if (appState.minedAmount < 0.1) {
+                showToast("لا توجد أرباح كافية!", "info");
+                return;
+            }
+            appState.walletBalance += appState.minedAmount;
+            appState.minedAmount = 0.00;
+            updateBalanceDisplays();
+            showToast("تمت المطالبة بالأرباح بنجاح!", "success");
+        }
+
+        function updateBalanceDisplays() {
+            document.getElementById('wallet-balance').innerText = appState.walletBalance.toFixed(2);
+            document.getElementById('mined-doge-amount').innerText = "0.00";
+            document.getElementById('profile-doge-balance').innerText = `${appState.walletBalance.toFixed(2)} DOGE`;
+            document.getElementById('leaderboard-user-score').innerText = `${appState.walletBalance.toFixed(2)} DOGE`;
+        }
+
+        function claimDailyTask(btn) {
+            appState.walletBalance += 10.00;
+            updateBalanceDisplays();
+            btn.innerText = "مكتمل";
+            btn.disabled = true;
+            showToast("تمت إضافة +10 DOGE!", "success");
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+        }
+
+        function switchUpgradeSubTab(sub) {
+            if (sub === 'rigs') {
+                document.getElementById('subtab-rigs-content').classList.remove('hidden');
+                document.getElementById('subtab-vip-content').classList.add('hidden');
+            } else {
+                document.getElementById('subtab-rigs-content').classList.add('hidden');
+                document.getElementById('subtab-vip-content').classList.remove('hidden');
+            }
+        }
+
+        function openDepositModal(price, pkgName) {
+            document.getElementById('deposit-package-title').innerText = pkgName;
+            document.getElementById('deposit-package-price').innerText = `$${price}.00 USDT`;
+            document.getElementById('modal-deposit').classList.remove('hidden');
+        }
+
+        function openWithdrawModal() {
+            document.getElementById('modal-withdraw').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function copyAdminAddress() {
+            navigator.clipboard.writeText(document.getElementById('admin-wallet-address').innerText);
+            showToast("تم نسخ المحفظة!", "success");
+        }
+
+        function submitDepositPayment() {
+            closeModal('modal-deposit');
+            showToast("تم إرسال طلبك وسيتم تأكيده قريباً!", "success");
+        }
+
+        function processWithdrawal() {
+            closeModal('modal-withdraw');
+            showToast("تم إرسال طلب السحب بنجاح!", "success");
+        }
+
+        function copyRefLink() {
+            navigator.clipboard.writeText(document.getElementById('ref-link-text').innerText);
+            showToast("تم نسخ رابط الإحالة!", "success");
+        }
+
+        function showToast(msg, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `bg-indigo-600 text-white px-3.5 py-2.5 rounded-2xl shadow-2xl text-xs font-bold flex items-center justify-between`;
+            toast.innerHTML = `<span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
