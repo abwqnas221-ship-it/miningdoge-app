@@ -1,4 +1,4 @@
-import os
+ذimport os
 import telebot
 from telebot import types
 from urllib.parse import quote
@@ -8,10 +8,10 @@ from urllib.parse import quote
 # ==============================================================================
 
 # يمكنك استبدال التوكين مباشرة هنا أو تعيينه كـ Environment Variable
-BOT_TOKEN = os.environ.get('BOT_TOKEN', 'ضع_توكين_البوت_هنا')
+BOT_TOKEN = os.environ.get('BOT_TOKEN', '8924590318:AAFocUkWyI2vEj8PQBroxxVXCfrp-ac-ao')
 
 # رابط تطبيق الـ Mini App المرفوع على GitHub Pages
-WEB_APP_URL = os.environ.get('WEB_APP_URL', 'https://YOUR_USERNAME.github.io/YOUR_REPO_NAME/')
+WEB_APP_URL = os.environ.get('WEB_APP_URL', 'https://abwqnas221-ship-it.github.io/miningdoge-app/')
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
