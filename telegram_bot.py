@@ -8,10 +8,10 @@ from urllib.parse import quote
 # ==============================================================================
 
 # يمكنك استبدال التوكين مباشرة هنا أو تعيينه كـ Environment Variable
-BOT_TOKEN = os.environ.get('BOT_TOKEN', '8924590318:AAFocUkWyI2vEj8PQBroxxVXCfrp-ac-ao')
+BOT_TOKEN = '8918958634:AAFN9FGotOlNt2MmD3OE9mnAIoZDmacXBYY'
 
 # رابط تطبيق الـ Mini App المرفوع على GitHub Pages
-WEB_APP_URL = os.environ.get('WEB_APP_URL', 'https://abwqnas221-ship-it.github.io/miningdoge-app/')
+WEB_APP_URL = 'https://abwqnas221-ship-it.github.io/miningdoge-app/'
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
