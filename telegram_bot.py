@@ -8,7 +8,7 @@ from urllib.parse import quote
 # ==============================================================================
 
 # يمكنك استبدال التوكين مباشرة هنا أو تعيينه كـ Environment Variable
-BOT_TOKEN = '8918958634:AAFN9FGotOlNt2MmD3OE9mnAIoZDmacXBYY'
+BOT_TOKEN = '8924590318:AAFocUkWyI2vEj8PQBroxxVXYCfrp-ac-ao'
 
 # رابط تطبيق الـ Mini App المرفوع على GitHub Pages
 WEB_APP_URL = 'https://abwqnas221-ship-it.github.io/miningdoge-app/'
